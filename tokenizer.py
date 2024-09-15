@@ -8,7 +8,7 @@ def strip(text):
 
     cleanText = html.unescape(text)
 
-    tagPattern = r'(?<=\b(?:alt|content)=["\'])([^"\']+)(?=["\'])'
+    tagPattern = r'\b(?:alt|content)=["\']([^"\']+)(?=["\'])'
     tagMatches = re.findall(tagPattern, cleanText)
 
     cleanText = re.sub(r'<.*?>', '', cleanText)
@@ -57,7 +57,7 @@ def tokenize(text, nlp):
     text = punctuationPattern.sub('', text)
 
     doc = nlp(text)
-    tokens = [token.text for token in doc if token.text.isdigit() or token.is_alpha()]
+    tokens = [token.text for token in doc if token.text.isdigit() or token.is_alpha]
 
     tokens.extend(urls)
     tokens.extend(emails)
@@ -67,6 +67,8 @@ def tokenize(text, nlp):
 def main(inputDirectory, outputDirectory):
 
     nlp = spacy.blank("en")
+    nlp.max_length = 2000000 #increase memory allocation
+
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
 

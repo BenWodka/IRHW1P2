@@ -14,14 +14,19 @@ echo '----running'
 
 cd "$outputDirectory"
 
-if compgen -G "*.txt" > /dev/null; then
-    cat *.txt > combinedTokens.txt
+find . -type f -name "*.txt" ! -name "combinedTokens.txt" -exec cat {} + > combinedTokens.txt
+
+if [ ! -f combinedTokens.txt ]; then
+    echo "combinedTokens.txt could not be created."
+    exit 1
 fi
 
 sort combinedTokens.txt | uniq -c | sort -k2 > tempalpha.txt
 sort combinedTokens.txt | uniq -c | sort -nr > tempfreqs.txt
 
-awk '{print $2, $1}' tempalpha.txt > alpha.txt
-awk '{print $2, $1}' tempfreqs.txt > freqs.txt
+cd ..
+
+awk '{print $2, $1}' "$outputDirectory/tempalpha.txt" > alpha.txt
+awk '{print $2, $1}' "$outputDirectory/tempfreqs.txt" > freqs.txt
 
 rm tempalpha.txt tempfreqs.txt 
