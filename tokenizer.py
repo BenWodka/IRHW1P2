@@ -1,4 +1,3 @@
-import nltk
 import sys
 import spacy
 import re
@@ -7,10 +6,17 @@ import html
 
 def strip(text):
 
-    clean_text = html.unescape(text)
-    clean_text = re.sub(r'<.*?>', '', clean_text)
-    clean_text = re.sub(r'\s+', ' ', clean_text).strip().lower()
-    return clean_text
+    cleanText = html.unescape(text)
+
+    tagPattern = r'(?<=\b(?:alt|content)=["\'])([^"\']+)(?=["\'])'
+    tagMatches = re.findall(tagPattern, cleanText)
+
+    cleanText = re.sub(r'<.*?>', '', cleanText)
+    cleanText = re.sub(r'\s+', ' ', cleanText).strip().lower()
+
+    cleanText += ' ' + ' '.join(tagMatches)
+
+    return cleanText
 
  
 def removeFileExtension(inputpathname):
@@ -34,8 +40,28 @@ def processFile(filename, nlp):
 
 def tokenize(text, nlp):
 
+    #removing unwanted elements
+    urlPattern = re.compile(r'http[s]?://\S+')
+    emailPattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b')
+    floatingPointPattern = re.compile(r'\b\d+\.\d+\b')
+    punctuationPattern = re.compile(r'[^\w\s]')
+
+    #detect urls and emails
+    urls = urlPattern.findall(text)
+    emails = emailPattern.findall(text)
+
+    # remove unwanted elements
+    text = urlPattern.sub('', text)
+    text = emailPattern.sub('', text)
+    text = floatingPointPattern.sub('', text)
+    text = punctuationPattern.sub('', text)
+
     doc = nlp(text)
-    tokens = [token.text for token in doc]
+    tokens = [token.text for token in doc if token.text.isdigit() or token.is_alpha()]
+
+    tokens.extend(urls)
+    tokens.extend(emails)
+
     return tokens
 
 def main(inputDirectory, outputDirectory):
